@@ -2,6 +2,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <math.h>
+#include <iostream>
 
 
 using namespace cv;
@@ -20,6 +21,9 @@ void warpMatrix(Size   sz,
                 double gamma,
                 double scale,
                 double fovy,
+                double x,
+                double y,
+                double z,
                 Mat&   M,
                 vector<Point2f>* corners){
     double st=sin(deg2Rad(theta));
@@ -55,7 +59,12 @@ void warpMatrix(Size   sz,
     Rgamma.at<double>(0,2)=-sg;Rgamma.at<double>(2,0)=sg;
 
     //T
-    T.at<double>(2,3)=-h;
+    T.at<double>(2,3)=-h + z;
+    T.at<double>(1,3)= y;
+    T.at<double>(0,3)= x;
+    //T.at<double>(2,1)= x;
+
+
     //P
     P.at<double>(0,0)=P.at<double>(1,1)=1.0/tan(deg2Rad(halfFovy));
     P.at<double>(2,2)=-(f+n)/(f-n);
@@ -109,6 +118,9 @@ void warpImage(const Mat &src,
                double    gamma,
                double    scale,
                double    fovy,
+               double x,
+               double y,
+               double z,
                Mat&      dst,
                Mat&      M,
                vector<Point2f> &corners){
@@ -116,7 +128,7 @@ void warpImage(const Mat &src,
     double d=hypot(src.cols,src.rows);
     double sideLength=scale*d/cos(deg2Rad(halfFovy));
 
-    warpMatrix(src.size(),theta,phi,gamma, scale,fovy,M,&corners);//Compute warp matrix
+    warpMatrix(src.size(),theta,phi,gamma, scale,fovy,x,y,z,M,&corners);//Compute warp matrix
     warpPerspective(src,dst,M,Size(sideLength,sideLength));//Do actual image warp
 }
 
@@ -132,10 +144,13 @@ int main(void){
     double gamma = 0;
     double scale = 1;
     double fovy = 30;
+    double x = 0;
+    double y = 0;
+    double z = 0;
 
     while(c != 033 && cap.isOpened()){
         cap >> m;
-        warpImage(m, theta, phi, gamma, scale, fovy, disp, warp, corners);
+        warpImage(m, theta, phi, gamma, scale, fovy, x, y, z, disp, warp, corners);
         imshow("Disp", disp);
         c = waitKey(1);
 
@@ -143,46 +158,91 @@ int main(void){
         {
         case 'z':
             theta -= 1;
+            std::cout << "theta: " << theta << std::endl;
             break;
         
         case 'x':
             theta += 1;
+            std::cout << "theta: " << theta << std::endl;
             break;
 
         case 'c':
             phi -= 1;
+            std::cout << "phi: " << phi << std::endl;
             break;
         
         case 'v':
             phi += 1;
+            std::cout << "phi: " << phi << std::endl;
             break;
 
         case 'b':
             gamma -= 1;
+            std::cout << "gamma: " << gamma << std::endl;
             break;
         
         case 'n':
             gamma += 1;
+            std::cout << "gamma: " << gamma << std::endl;
             break;
 
-        case 'q':
+        case 'o':
             fovy -= 1;
+            std::cout << "fovy: " << fovy << std::endl;
             break;
         
-        case 'w':
+        case 'p':
             fovy += 1;
+            std::cout << "fovy: " << fovy << std::endl;
+            break;
+
+        case 'u':
+            scale -= 0.1;
+            std::cout << "scale: " << scale << std::endl;
+            break;
+        
+        case 'i':
+            scale += 0.1;
+            std::cout << "scale: " << scale << std::endl;
+            break;
+
+
+        case 'a':
+            x -=10;
+            std::cout << "x: " << x << std::endl;
+            break;
+
+        case 'd':
+            x +=10;
+            std::cout << "x: " << x << std::endl;
+            break;
+
+        case 's':
+            y +=10;
+            std::cout << "y: " << y << std::endl;
+            break;
+
+        case 'w':
+            y -=10;
+            std::cout << "y: " << y << std::endl;
             break;
 
         case 'e':
-            scale -= 0.1;
-            break;
-        
-        case 'r':
-            scale += 0.1;
+            z +=10;
+            std::cout << "z: " << z << std::endl;
             break;
 
+        case 'r':
+            z -=10;
+            std::cout << "z: " << z << std::endl;
+            break;
+
+        case -1:
+            // Timeout
+            break;
 
         default:
+            std::cout << "Unknown Key: " << c << std::endl;
             break;
         }
 
