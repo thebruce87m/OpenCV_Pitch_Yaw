@@ -22,12 +22,12 @@ void warpImage(const cv::Mat &src,
 {
     double halfFovy=m_fovy*0.5;
     double d=hypot(src.cols,src.rows);
-    double sideLength=m_scale*d/cos(deg2Rad(halfFovy));
+    double sideLength=m_scaleX*d/cos(deg2Rad(halfFovy));
 
     cv::Mat      M;
     std::vector<cv::Point2f> corners;
 
-    warpMatrix(src.size(),m_theta,m_phi,m_gamma, m_scale,m_fovy,m_x,m_y,m_z,M,&corners);//Compute warp matrix
+    warpMatrix(src.size(),m_theta,m_phi,m_gamma, m_scaleX,m_scaleY, m_fovy,m_x,m_y,m_z,M,&corners);//Compute warp matrix
     warpPerspective(src,dst,M,cv::Size(sideLength,sideLength));//Do actual image warp
 }
 
@@ -75,18 +75,34 @@ void SetGamma(double Value)
 }
 
 //
-// Scale
+// Scale X
 //
 
-double GetScale()
+double GetScaleX()
 {
-    return m_scale;
+    return m_scaleX;
 }
 
-void SetScale(double Value)
+void SetScaleX(double Value)
 {
-    m_scale = Value;
+    m_scaleX = Value;
 }
+
+
+//
+// Scale Y
+//
+
+double GetScaleY()
+{
+    return m_scaleY;
+}
+
+void SetScaleY(double Value)
+{
+    m_scaleY = Value;
+}
+
 
 //
 // FOVY
@@ -152,7 +168,8 @@ private:
     double m_theta = 5;
     double m_phi = 50;
     double m_gamma = 0;
-    double m_scale = 1;
+    double m_scaleX = 1;
+    double m_scaleY = 1;
     double m_fovy = 30;
     double m_x = 0;
     double m_y = 0;
@@ -165,7 +182,8 @@ private:
                 double theta,
                 double phi,
                 double gamma,
-                double scale,
+                double scaleX,
+                double scaleY,
                 double fovy,
                 double x,
                 double y,
@@ -181,7 +199,7 @@ private:
 
     double halfFovy=fovy*0.5;
     double d=hypot(sz.width,sz.height);
-    double sideLength=scale*d/cos(deg2Rad(halfFovy));
+    double sideLength=1.0*d/cos(deg2Rad(halfFovy));
     double h=d/(2.0*sin(deg2Rad(halfFovy)));
     double n=h-(d/2.0);
     double f=h+(d/2.0);
@@ -193,6 +211,13 @@ private:
 
     cv::Mat T=cv::Mat::eye(4,4,CV_64FC1);//Allocate 4x4 translation matrix along Z-axis by -h units
     cv::Mat P=cv::Mat::zeros(4,4,CV_64FC1);//Allocate 4x4 projection matrix
+
+    // X and Y Scaling
+    cv::Mat S=cv::Mat::eye(4,4,CV_64FC1);//Scale
+    T.at<double>(0,0)= scaleX;
+    T.at<double>(1,1)= scaleY;
+
+
 
     //Rtheta
     Rtheta.at<double>(0,0)=Rtheta.at<double>(1,1)=ct;
@@ -208,7 +233,6 @@ private:
     T.at<double>(2,3)=-h + z;
     T.at<double>(1,3)= y;
     T.at<double>(0,3)= x;
-    //T.at<double>(2,1)= x;
 
 
     //P
@@ -216,8 +240,10 @@ private:
     P.at<double>(2,2)=-(f+n)/(f-n);
     P.at<double>(2,3)=-(2.0*f*n)/(f-n);
     P.at<double>(3,2)=-1.0;
+
+
     //Compose transformations
-    F=P*T*Rphi*Rtheta*Rgamma;//Matrix-multiply to produce master matrix
+    F=P*T*S*Rphi*Rtheta*Rgamma;//Matrix-multiply to produce master matrix
 
     //Transform 4x4 points
     double ptsIn [4*3];

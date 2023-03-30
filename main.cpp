@@ -108,25 +108,43 @@ int main(void){
 
         case 'u':
         {
-            auto scale = warper.GetScale();
+            auto scale = warper.GetScaleX();
 
-            warper.SetScale(scale - 0.1);
+            warper.SetScaleX(scale - 0.1);
 
-            std::cout << "scale: " << warper.GetScale() << std::endl;
+            std::cout << "scaleX: " << warper.GetScaleX() << std::endl;
             break;
         }
         
         case 'i':
         {
-            auto scale = warper.GetScale();
+            auto scale = warper.GetScaleX();
 
-            warper.SetScale(scale + 0.1);
+            warper.SetScaleX(scale + 0.1);
 
-            std::cout << "scale: " << warper.GetScale() << std::endl;
+            std::cout << "scaleX: " << warper.GetScaleX() << std::endl;
             break;
         }
 
+        case 't':
+        {
+            auto scale = warper.GetScaleY();
 
+            warper.SetScaleY(scale - 0.1);
+
+            std::cout << "scaleY: " << warper.GetScaleY() << std::endl;
+            break;
+        }
+
+        case 'y':
+        {
+            auto scale = warper.GetScaleY();
+
+            warper.SetScaleY(scale + 0.1);
+
+            std::cout << "scaleY: " << warper.GetScaleY() << std::endl;
+            break;
+        }
         case 'a':
         {
             auto xOffset = warper.GetXOffset();
