@@ -31,6 +31,10 @@ void warpImage(const cv::Mat &src,
     warpPerspective(src,dst,M,cv::Size(sideLength,sideLength));//Do actual image warp
 }
 
+//
+// Theta
+//
+
 double GetTheta()
 {
     return m_theta;
@@ -135,7 +139,7 @@ void SetYOffset(double Value)
 
 double GetZOffset()
 {
-    return m_y;
+    return m_z;
 }
 
 void SetZOffset(double Value)
