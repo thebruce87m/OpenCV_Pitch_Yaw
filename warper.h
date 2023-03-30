@@ -22,13 +22,15 @@ void warpImage(const cv::Mat &src,
 {
     double halfFovy=m_fovy*0.5;
     double d=hypot(src.cols,src.rows);
-    double sideLength=m_scaleX*d/cos(deg2Rad(halfFovy));
+    double sideLengthX=m_scaleX*d/cos(deg2Rad(halfFovy));
+
+    double sideLengthY=m_scaleY*d/cos(deg2Rad(halfFovy));
 
     cv::Mat      M;
     std::vector<cv::Point2f> corners;
 
     warpMatrix(src.size(),m_theta,m_phi,m_gamma, m_scaleX,m_scaleY, m_fovy,m_x,m_y,m_z,M,&corners);//Compute warp matrix
-    warpPerspective(src,dst,M,cv::Size(sideLength,sideLength));//Do actual image warp
+    warpPerspective(src,dst,M,cv::Size(sideLengthX,sideLengthY));//Do actual image warp
 }
 
 //
@@ -199,7 +201,8 @@ private:
 
     double halfFovy=fovy*0.5;
     double d=hypot(sz.width,sz.height);
-    double sideLength=1.0*d/cos(deg2Rad(halfFovy));
+    double sideLengthX=scaleX*d/cos(deg2Rad(halfFovy));
+    double sideLengthY=scaleY*d/cos(deg2Rad(halfFovy));
     double h=d/(2.0*sin(deg2Rad(halfFovy)));
     double n=h-(d/2.0);
     double f=h+(d/2.0);
@@ -211,13 +214,6 @@ private:
 
     cv::Mat T=cv::Mat::eye(4,4,CV_64FC1);//Allocate 4x4 translation matrix along Z-axis by -h units
     cv::Mat P=cv::Mat::zeros(4,4,CV_64FC1);//Allocate 4x4 projection matrix
-
-    // X and Y Scaling
-    cv::Mat S=cv::Mat::eye(4,4,CV_64FC1);//Scale
-    T.at<double>(0,0)= scaleX;
-    T.at<double>(1,1)= scaleY;
-
-
 
     //Rtheta
     Rtheta.at<double>(0,0)=Rtheta.at<double>(1,1)=ct;
@@ -243,7 +239,7 @@ private:
 
 
     //Compose transformations
-    F=P*T*S*Rphi*Rtheta*Rgamma;//Matrix-multiply to produce master matrix
+    F=P*T*Rphi*Rtheta*Rgamma;//Matrix-multiply to produce master matrix
 
     //Transform 4x4 points
     double ptsIn [4*3];
@@ -269,7 +265,10 @@ private:
         cv::Point2f ptIn (ptsIn [i*3+0], ptsIn [i*3+1]);
         cv::Point2f ptOut(ptsOut[i*3+0], ptsOut[i*3+1]);
         ptsInPt2f[i]  = ptIn+cv::Point2f(halfW,halfH);
-        ptsOutPt2f[i] = (ptOut+cv::Point2f(1,1))*(sideLength*0.5);
+        ptsOutPt2f[i] = (ptOut+cv::Point2f(1,1));
+
+        ptsOutPt2f[i].x = ptsOutPt2f[i].x * (sideLengthX*0.5);
+        ptsOutPt2f[i].y = ptsOutPt2f[i].y * (sideLengthY*0.5);
     }
 
     M=getPerspectiveTransform(ptsInPt2f,ptsOutPt2f);
