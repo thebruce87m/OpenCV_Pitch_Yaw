@@ -8,17 +8,16 @@ using namespace std;
 
 
 int main(void){
-    int c = 0;
-    Mat m, disp;
+
 
     Warper warper;
 
-    VideoCapture cap(0);
+    Mat m = imread("image.png");
 
-    while(c != 033 && cap.isOpened())
+    int c = 0;
+    while(c != 033)
     {
-        cap >> m;
-
+        Mat disp;
         warper.warpImage(m, disp);
 
         imshow("Disp", disp);
